@@ -201,13 +201,6 @@ app.get("/api/state", (req, res) => {
 
 app.post("/api/predictions", (req, res) => {
   const { matchId, name, homeScore, awayScore } = req.body;
-  const results = getResults();
-  if (results[matchId]) {
-  return res.status(400).json({
-  ok: false,
-  message: "이미 결과가 확정된 경기입니다."
-  });
-  }
   const match = matches.find(m => m.id === Number(matchId));
   if (!match) return res.status(400).json({ ok: false, message: "경기 정보가 올바르지 않습니다." });
 
