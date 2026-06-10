@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>월드컵 스코어 맞추기</title>
+  <style>
+    * { box-sizing: border-box; }
+    :root{
+      --bg1:#07111f; --bg2:#0b3b3c; --card:#ffffff; --text:#111827;
+      --muted:#6b7280; --green:#10b981; --blue:#2563eb; --red:#ef4444;
+      --gold:#f59e0b; --line:#e5e7eb;
+    }
+    body {
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",Arial,sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(16,185,129,.28), transparent 32%),
+        radial-gradient(circle at top right, rgba(245,158,11,.24), transparent 28%),
+        linear-gradient(135deg,var(--bg1),var(--bg2));
+      color:var(--text); min-height:100vh;
+    }
+    .container { max-width:620px; margin:0 auto; padding:18px; }
+    .hero { color:white; padding:10px 2px 2px; }
+    h1 { margin:0; font-size:28px; letter-spacing:-1px; }
+    .sub { color:rgba(255,255,255,.78); font-size:13px; margin-top:7px; line-height:1.5; }
+    .admin-box {
+      margin-top:14px; background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.18);
+      color:white; border-radius:18px; padding:14px; line-height:1.8; font-size:14px; backdrop-filter: blur(8px);
+    }
+    .admin-box strong { color:#fde68a; }
+    .top-box {
+      background:rgba(255,255,255,.94); padding:15px; border-radius:20px; margin:16px 0;
+      line-height:1.75; font-size:14px; box-shadow:0 12px 28px rgba(0,0,0,.16);
+    }
+    .tabs { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px; position:sticky; top:0; z-index:5; padding:8px 0; }
+    .tab { border:0; border-radius:999px; padding:12px 6px; background:rgba(255,255,255,.82); font-weight:900; cursor:pointer; color:#0f172a; box-shadow:0 5px 14px rgba(0,0,0,.12); }
+    .tab.active { background:linear-gradient(135deg,#f59e0b,#ef4444); color:white; }
+    .card {
+      background:var(--card); border-radius:22px; padding:17px; margin-bottom:14px;
+      box-shadow:0 12px 28px rgba(0,0,0,.16); border:1px solid rgba(255,255,255,.65);
+    }
+    .match-title { font-size:20px; font-weight:950; margin-bottom:6px; letter-spacing:-.4px; }
+    .date { color:var(--muted); font-size:13px; margin-bottom:12px; }
+    .badge { display:inline-block; padding:5px 9px; border-radius:999px; background:#ecfdf5; color:#047857; font-weight:900; font-size:12px; margin:2px 4px 2px 0; }
+    .badge.time { background:#eff6ff; color:#1d4ed8; }
+    .score-row { display:grid; grid-template-columns:1fr 74px 20px 74px 1fr; gap:6px; align-items:center; margin:12px 0; }
+    .team-left { text-align:right; font-weight:900; }
+    .team-right { text-align:left; font-weight:900; }
+    input {
+      width:100%; padding:13px; border:1px solid #d5d9de; border-radius:14px;
+      font-size:15px; background:white; outline:none;
+    }
+    input:focus { border-color:var(--green); box-shadow:0 0 0 3px rgba(16,185,129,.16); }
+    input[type="number"] { text-align:center; font-size:19px; font-weight:950; }
+    .btn {
+      width:100%; border:0; border-radius:16px; padding:14px; font-size:15px; font-weight:950;
+      background:linear-gradient(135deg,#059669,#2563eb); color:white; cursor:pointer; margin-top:8px;
+      box-shadow:0 8px 18px rgba(37,99,235,.22);
+    }
+    .btn.secondary { background:#eef2f7; color:#111827; box-shadow:none; }
+    .btn.danger { background:linear-gradient(135deg,#ef4444,#b91c1c); color:white; }
+    .btn.small { padding:8px 10px; font-size:12px; margin:0; border-radius:10px; box-shadow:none; width:auto; }
+    .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .summary { background:#f8fafc; border:1px solid #edf2f7; border-radius:16px; padding:13px; font-size:14px; line-height:1.85; margin-top:10px; }
+    .money { color:#b45309; font-weight:950; }
+    .list-item { display:grid; grid-template-columns:44px 1fr auto auto; gap:9px; align-items:center; border-bottom:1px solid var(--line); padding:11px 0; font-size:14px; }
+    .list-item:last-child { border-bottom:0; }
+    .rank { width:34px;height:34px;border-radius:50%; background:#f1f5f9;display:flex;align-items:center;justify-content:center; font-weight:950;color:#334155; }
+    .name { font-weight:900; }
+    .score { font-weight:950; font-size:17px; color:#111827; }
+    .winner { background:linear-gradient(135deg,#fff7ed,#fff1f2); border:1px solid #fed7aa; border-radius:16px; padding:12px; margin-top:10px; color:#9a3412; font-weight:900; line-height:1.7; }
+    .muted { color:var(--muted); font-size:12px; line-height:1.5; }
+    .notice { color:rgba(255,255,255,.75); font-size:12px; line-height:1.6; margin:18px 2px; }
+    .all-table { width:100%; border-collapse:collapse; font-size:13px; margin-top:8px; overflow:hidden; border-radius:14px; }
+    .all-table th, .all-table td { border-bottom:1px solid #e5e7eb; padding:9px 6px; text-align:center; vertical-align:middle; }
+    .all-table th { background:#f1f5f9; font-weight:950; }
+    .all-table td:first-child { text-align:left; font-weight:900; }
+    .ok { color:#dc2626; font-weight:950; }
+    .empty { color:#94a3b8; }
+    .hidden { display:none; }
+    .message { padding:11px; border-radius:14px; background:#ecfdf5; color:#047857; font-size:13px; font-weight:800; margin:8px 0; }
+    .error { padding:11px; border-radius:14px; background:#fef2f2; color:#b91c1c; font-size:13px; font-weight:800; margin:8px 0; }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <div class="hero">
+      <h1>월드컵 스코어 맞추기</h1>
+      <div class="sub">친구들이 링크로 직접 접속해서 예상 스코어 입력 · 정확한 스코어 적중자에게 분배</div>
+      <div class="admin-box" id="adminBox"></div>
+    </div>
+
+    <div class="top-box" id="topSummary">불러오는 중...</div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="selectMatch(1)">1차전</button>
+      <button class="tab" onclick="selectMatch(2)">2차전</button>
+      <button class="tab" onclick="selectMatch(3)">3차전</button>
+    </div>
+
+    <section class="card" id="matchCard"></section>
+
+    <section class="card">
+      <div class="match-title">예상 스코어 입력</div>
+      <div class="muted">친구들은 링크에 접속해서 자기 이름과 예상 스코어만 입력하면 됩니다. 같은 이름으로 다시 저장하면 수정됩니다.</div>
+      <div style="margin-top:12px;"><input id="playerName" placeholder="참가자 이름 예: 김대영" /></div>
+      <div class="score-row">
+        <div class="team-left" id="homeLabel1"></div>
+        <input id="predHome" type="number" min="0" max="20" value="0" />
+        <div style="text-align:center;font-weight:950;">:</div>
+        <input id="predAway" type="number" min="0" max="20" value="0" />
+        <div class="team-right" id="awayLabel1"></div>
+      </div>
+      <button class="btn" onclick="savePrediction()">예상 스코어 저장</button>
+      <div id="userMessage"></div>
+    </section>
+
+    <section class="card">
+      <div class="match-title">참가자 예상 현황</div>
+      <div class="muted">현재 선택한 경기의 모든 참가자 예상 스코어입니다.</div>
+      <div id="predictionList"></div>
+    </section>
+
+    <section class="card">
+      <div class="match-title">관리자 메뉴</div>
+      <div class="muted">관리자만 실제 결과 확정, 예상 삭제, 관리자/통장번호 변경이 가능합니다.</div>
+      <input id="adminPassword" type="password" placeholder="관리자 비밀번호" style="margin-top:10px;" />
+
+      <div class="summary">
+        <strong>실제 결과 입력</strong>
+        <div class="score-row">
+          <div class="team-left" id="homeLabel2"></div>
+          <input id="realHome" type="number" min="0" max="20" value="0" />
+          <div style="text-align:center;font-weight:950;">:</div>
+          <input id="realAway" type="number" min="0" max="20" value="0" />
+          <div class="team-right" id="awayLabel2"></div>
+        </div>
+        <div class="grid2">
+          <button class="btn" onclick="saveResult()">결과 확정 및 정산</button>
+          <button class="btn secondary" onclick="clearResult()">결과 삭제</button>
+        </div>
+      </div>
+
+      <div class="summary">
+        <strong>관리자/통장번호 수정</strong>
+        <input id="adminNameInput" placeholder="관리자명" style="margin-top:8px;" />
+        <input id="bankAccountInput" placeholder="통장번호" style="margin-top:8px;" />
+        <input id="entryFeeInput" type="number" placeholder="참가비" style="margin-top:8px;" />
+        <button class="btn secondary" onclick="saveSettings()">관리 정보 저장</button>
+      </div>
+
+      <div id="adminMessage"></div>
+    </section>
+
+    <section class="card">
+      <div class="match-title">정산 결과</div>
+      <div id="settlement"></div>
+    </section>
+
+    <section class="card">
+      <div class="match-title">전체 경기 현황판</div>
+      <div class="muted">1차·2차·3차 모든 참가자, 총상금, 적중자, 이월금을 한 번에 확인합니다.</div>
+      <div id="allDashboard"></div>
+    </section>
+
+    <div class="notice">
+      ※ 친구들에게 이 웹앱 주소를 공유하면 각자 접속해서 직접 입력할 수 있습니다.<br>
+      ※ 이 프로그램은 지인 간 친목용 정산 도구로만 사용하세요.
+    </div>
+  </main>
+
+<script>
+let state = null;
+let selectedMatchId = 1;
+
+function formatMoney(v){ return Number(v || 0).toLocaleString("ko-KR") + "원"; }
+function getMatch(id){ return state.matches.find(m => m.id === id); }
+function getPredictions(matchId){ return state.predictions.filter(p => p.matchId === matchId); }
+function getSettlement(matchId){ return state.settlements.find(s => s.matchId === matchId); }
+function wonText(home, away){ if(home > away) return "홈 승"; if(home < away) return "원정 승"; return "무승부"; }
+
+function showMessage(target, text, isError=false) {
+  document.getElementById(target).innerHTML = `<div class="${isError ? "error" : "message"}">${text}</div>`;
+  setTimeout(() => { document.getElementById(target).innerHTML = ""; }, 3000);
+}
+
+async function api(path, options={}) {
+  const res = await fetch(path, {
+    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+    ...options
+  });
+  const data = await res.json();
+  if (!res.ok || data.ok === false) throw new Error(data.message || "요청 실패");
+  return data;
+}
+
+async function loadState() {
+  state = await api("/api/state");
+  render();
+}
+
+function selectMatch(id){
+  selectedMatchId = id;
+  document.querySelectorAll(".tab").forEach((btn, idx) => btn.classList.toggle("active", idx + 1 === id));
+  render();
+}
+
+function renderAdminBox() {
+  document.getElementById("adminBox").innerHTML = `
+    <strong>관리자:</strong> ${state.settings.adminName}<br>
+    <strong>통장번호:</strong> ${state.settings.bankAccount}<br>
+    <span style="font-size:12px;color:rgba(255,255,255,.74)">입금자명은 참가자 이름과 동일하게 입력하세요.</span>
+  `;
+  document.getElementById("adminNameInput").value = state.settings.adminName;
+  document.getElementById("bankAccountInput").value = state.settings.bankAccount;
+  document.getElementById("entryFeeInput").value = state.settings.entryFee;
+}
+
+function renderTopSummary(){
+  let totalInputs = state.predictions.length;
+  let totalBase = totalInputs * state.settings.entryFee;
+  const current = getSettlement(selectedMatchId);
+  const m = getMatch(selectedMatchId);
+  document.getElementById("topSummary").innerHTML = `
+    <span class="badge">참가비 ${formatMoney(state.settings.entryFee)}</span>
+    <span class="badge time">${m.date} ${m.time}</span>
+    <span class="badge">정확한 스코어 적중</span><br>
+    현재 선택 경기 참가자: <strong>${current.participants}명</strong><br>
+    현재 선택 경기 총상금: <span class="money">${formatMoney(current.totalPrize)}</span><br>
+    전체 입력 건수: <strong>${totalInputs}건</strong> / 전체 모금 기준액: <span class="money">${formatMoney(totalBase)}</span>
+  `;
+}
+
+function renderMatchCard(){
+  const m = getMatch(selectedMatchId);
+  const s = getSettlement(selectedMatchId);
+  document.getElementById("matchCard").innerHTML = `
+    <div class="match-title">${m.round} · ${m.home} vs ${m.away}</div>
+    <div class="date">경기일시: ${m.date} ${m.time}</div>
+    <div class="summary">
+      참가자: <strong>${s.participants}명</strong><br>
+      해당 경기 모금액: ${formatMoney(s.basePrize)}<br>
+      이전 경기 이월금: ${formatMoney(s.carryIn)}<br>
+      현재 총 상금: <span class="money">${formatMoney(s.totalPrize)}</span>
+    </div>`;
+  document.getElementById("homeLabel1").innerText = m.home;
+  document.getElementById("awayLabel1").innerText = m.away;
+  document.getElementById("homeLabel2").innerText = m.home;
+  document.getElementById("awayLabel2").innerText = m.away;
+  const result = state.results[selectedMatchId];
+  document.getElementById("realHome").value = result ? result.homeScore : 0;
+  document.getElementById("realAway").value = result ? result.awayScore : 0;
+}
+
+async function savePrediction(){
+  const name = document.getElementById("playerName").value.trim();
+  const homeScore = Number(document.getElementById("predHome").value);
+  const awayScore = Number(document.getElementById("predAway").value);
+
+  try {
+    state = await api("/api/predictions", {
+      method: "POST",
+      body: JSON.stringify({ matchId: selectedMatchId, name, homeScore, awayScore })
+    });
+    document.getElementById("playerName").value = "";
+    document.getElementById("predHome").value = 0;
+    document.getElementById("predAway").value = 0;
+    render();
+    showMessage("userMessage", "예상 스코어가 저장되었습니다.");
+  } catch (e) {
+    showMessage("userMessage", e.message, true);
+  }
+}
+
+async function deletePrediction(id){
+  if(!confirm("이 예상 스코어를 삭제할까요?")) return;
+  const pw = document.getElementById("adminPassword").value;
+  try {
+    state = await api(`/api/predictions/${id}`, {
+      method: "DELETE",
+      headers: { "x-admin-password": pw }
+    });
+    render();
+    showMessage("adminMessage", "삭제되었습니다.");
+  } catch(e) {
+    showMessage("adminMessage", e.message, true);
+  }
+}
+
+function renderPredictionList(){
+  const preds = getPredictions(selectedMatchId);
+  const result = state.results[selectedMatchId];
+  if(preds.length === 0){
+    document.getElementById("predictionList").innerHTML = '<div class="summary empty">아직 입력된 예상 스코어가 없습니다.</div>';
+    return;
+  }
+  document.getElementById("predictionList").innerHTML = preds.map((p, idx) => {
+    const isWinner = result && Number(p.homeScore) === Number(result.homeScore) && Number(p.awayScore) === Number(result.awayScore);
+    return `
+      <div class="list-item">
+        <div class="rank">${idx + 1}</div>
+        <div>
+          <div class="name">${p.name} ${isWinner ? "🏆" : ""}</div>
+          <div class="muted">${wonText(p.homeScore, p.awayScore)} · 입금 ${formatMoney(state.settings.entryFee)}</div>
+        </div>
+        <div class="score">${p.homeScore} : ${p.awayScore}</div>
+        <button class="btn small secondary" onclick="deletePrediction(${p.id})">삭제</button>
+      </div>`;
+  }).join("");
+}
+
+async function saveResult(){
+  const adminPassword = document.getElementById("adminPassword").value;
+  const homeScore = Number(document.getElementById("realHome").value);
+  const awayScore = Number(document.getElementById("realAway").value);
+  try {
+    state = await api("/api/results", {
+      method: "POST",
+      body: JSON.stringify({ adminPassword, matchId: selectedMatchId, homeScore, awayScore })
+    });
+    render();
+    showMessage("adminMessage", "결과가 확정되고 정산되었습니다.");
+  } catch(e) {
+    showMessage("adminMessage", e.message, true);
+  }
+}
+
+async function clearResult(){
+  if(!confirm("이 경기의 실제 결과와 정산을 삭제할까요?")) return;
+  const pw = document.getElementById("adminPassword").value;
+  try {
+    state = await api(`/api/results/${selectedMatchId}`, {
+      method: "DELETE",
+      headers: { "x-admin-password": pw }
+    });
+    render();
+    showMessage("adminMessage", "결과가 삭제되었습니다.");
+  } catch(e) {
+    showMessage("adminMessage", e.message, true);
+  }
+}
+
+async function saveSettings(){
+  const adminPassword = document.getElementById("adminPassword").value;
+  const adminName = document.getElementById("adminNameInput").value;
+  const bankAccount = document.getElementById("bankAccountInput").value;
+  const entryFee = Number(document.getElementById("entryFeeInput").value || 10000);
+  try {
+    state = await api("/api/settings", {
+      method: "POST",
+      body: JSON.stringify({ adminPassword, adminName, bankAccount, entryFee })
+    });
+    render();
+    showMessage("adminMessage", "관리 정보가 저장되었습니다.");
+  } catch(e) {
+    showMessage("adminMessage", e.message, true);
+  }
+}
+
+function renderSettlement(){
+  const m = getMatch(selectedMatchId);
+  const s = getSettlement(selectedMatchId);
+  const result = state.results[selectedMatchId];
+
+  if(!result){
+    document.getElementById("settlement").innerHTML = `
+      <div class="summary">
+        아직 실제 결과가 입력되지 않았습니다.<br>
+        현재 참가자 기준 총상금: <span class="money">${formatMoney(s.totalPrize)}</span>
+      </div>`;
+    return;
+  }
+
+  let html = `
+    <div class="summary">
+      실제 결과: <strong>${m.home} ${result.homeScore} : ${result.awayScore} ${m.away}</strong><br>
+      참가자: ${s.participants}명<br>
+      해당 경기 모금액: ${formatMoney(s.basePrize)}<br>
+      이전 이월금: ${formatMoney(s.carryIn)}<br>
+      총상금: <span class="money">${formatMoney(s.totalPrize)}</span>
+    </div>`;
+
+  if(s.winners.length === 0){
+    html += `<div class="winner">정확한 스코어 적중자가 없습니다.<br>다음 경기 이월금: ${formatMoney(s.carryOut)}</div>`;
+  } else {
+    html += `
+      <div class="winner">
+        🏆 적중자: ${s.winners.map(w => w.name).join(", ")}<br>
+        적중자 수: ${s.winners.length}명<br>
+        1인당 지급액: ${formatMoney(s.prizePerPerson)}<br>
+        잔여 이월금: ${formatMoney(s.carryOut)}
+      </div>`;
+  }
+  document.getElementById("settlement").innerHTML = html;
+}
+
+function renderAllDashboard(){
+  let rows = state.matches.map(m => {
+    const s = getSettlement(m.id);
+    const result = state.results[m.id];
+    let winnerText = "-";
+    if(result) winnerText = s.winners.length ? s.winners.map(w => w.name).join(", ") : "적중자 없음";
+    return `
+      <tr>
+        <td>${m.round}<br><span class="muted">${m.date} ${m.time}</span><br><span class="muted">${m.home} vs ${m.away}</span></td>
+        <td>${s.participants}명</td>
+        <td>${formatMoney(s.totalPrize)}</td>
+        <td>${result ? `${result.homeScore}:${result.awayScore}` : "-"}</td>
+        <td class="${s.winners.length ? "ok" : ""}">${winnerText}</td>
+        <td>${result ? formatMoney(s.carryOut) : "-"}</td>
+      </tr>`;
+  }).join("");
+
+  document.getElementById("allDashboard").innerHTML = `
+    <table class="all-table">
+      <thead>
+        <tr><th>경기</th><th>참가</th><th>총상금</th><th>결과</th><th>적중자</th><th>이월</th></tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function render(){
+  if (!state) return;
+  renderAdminBox();
+  renderTopSummary();
+  renderMatchCard();
+  renderPredictionList();
+  renderSettlement();
+  renderAllDashboard();
+}
+
+loadState();
+setInterval(loadState, 15000);
+</script>
+</body>
+</html>
