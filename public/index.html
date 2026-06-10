@@ -101,7 +101,7 @@
   <main class="container">
     <div class="hero">
       <h1>월드컵 스코어 맞추기</h1>
-      <div class="sub">친구들이 링크로 직접 접속해서 예상 스코어 입력 · 정확한 스코어 적중자에게 분배</div>
+      <div class="sub">친구들이 링크로 직접 접속해서 예상 스코어 입력 · 정확한 스코어 맞춘 사람에게 분배</div>
       <div class="admin-box" id="adminBox"></div>
     </div>
 
@@ -182,7 +182,7 @@
 
     <section class="card">
       <div class="match-title">전체 경기 현황판</div>
-      <div class="muted">1차·2차·3차 모든 참가자, 총상금, 적중자, 이월금을 한 번에 확인합니다.</div>
+      <div class="muted">1차·2차·3차 모든 참가자, 총상금, 맞춘 사람, 이월금을 한 번에 확인합니다.</div>
       <div id="allDashboard"></div>
     </section>
 
@@ -436,12 +436,12 @@ function renderSettlement(){
     </div>`;
 
   if(s.winners.length === 0){
-    html += `<div class="winner">정확한 스코어 적중자가 없습니다.<br>다음 경기 이월금: ${formatMoney(s.carryOut)}</div>`;
+    html += `<div class="winner">정확한 스코어 맞춘 사람가 없습니다.<br>다음 경기 이월금: ${formatMoney(s.carryOut)}</div>`;
   } else {
     html += `
       <div class="winner">
-        🏆 적중자: ${s.winners.map(w => w.name).join(", ")}<br>
-        적중자 수: ${s.winners.length}명<br>
+        🏆 맞춘 사람: ${s.winners.map(w => w.name).join(", ")}<br>
+        맞춘 사람 수: ${s.winners.length}명<br>
         1인당 지급액: ${formatMoney(s.prizePerPerson)}<br>
         잔여 이월금: ${formatMoney(s.carryOut)}
       </div>`;
@@ -454,7 +454,7 @@ function renderAllDashboard(){
     const s = getSettlement(m.id);
     const result = state.results[m.id];
     let winnerText = "-";
-    if(result) winnerText = s.winners.length ? s.winners.map(w => w.name).join(", ") : "적중자 없음";
+    if(result) winnerText = s.winners.length ? s.winners.map(w => w.name).join(", ") : "맞춘 사람 없음";
     return `
       <tr>
         <td>${m.round}<br><span class="muted">${m.date} ${m.time}</span><br><span class="muted">${m.home} vs ${m.away}</span></td>
@@ -470,7 +470,7 @@ function renderAllDashboard(){
     <div class="table-wrap">
       <table class="all-table">
         <thead>
-          <tr><th>경기</th><th>참가</th><th>총상금</th><th>결과</th><th>적중자</th><th>이월</th></tr>
+          <tr><th>경기</th><th>참가</th><th>총상금</th><th>결과</th><th>맞춘 사람</th><th>이월</th></tr>
         </thead>
         <tbody>${rows}</tbody>
       </table>
