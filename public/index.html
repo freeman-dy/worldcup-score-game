@@ -231,6 +231,7 @@ function shareLink(){
 ${location.href}`;
 
   navigator.clipboard.writeText(text);
+  alert("복사 완료!");
   alert("카카오톡에 붙여넣을 내용이 복사되었습니다.");
 }
 
@@ -355,7 +356,7 @@ function renderPredictionList(){
       <div class="list-item">
         <div class="rank">${idx + 1}</div>
         <div>
-          <div class="name">${p.name} ${isWinner ? "🏆" : ""}</div>
+          <div class="name">${p.name}<br><small>${p.updatedAt}</small> ${isWinner ? "🏆" : ""}</div>
           <div class="muted">${wonText(p.homeScore, p.awayScore)} · 입금 ${formatMoney(state.settings.entryFee)}</div>
         </div>
         <div class="score">${p.homeScore} : ${p.awayScore}</div>
@@ -454,7 +455,7 @@ function renderAllDashboard(){
     const s = getSettlement(m.id);
     const result = state.results[m.id];
     let winnerText = "-";
-    if(result) winnerText = s.winners.length ? s.winners.map(w => w.name).join(", ") : "맞춘 사람 없음";
+    if(result) winnerText = s.winners.length ? s.winners.map(w => "🏆 " + w.name).join(", ") : "맞춘 사람 없음";
     return `
       <tr>
         <td>${m.round}<br><span class="muted">${m.date} ${m.time}</span><br><span class="muted">${m.home} vs ${m.away}</span></td>
