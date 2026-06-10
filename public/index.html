@@ -72,7 +72,21 @@
     .winner { background:linear-gradient(135deg,#fff7ed,#fff1f2); border:1px solid #fed7aa; border-radius:16px; padding:12px; margin-top:10px; color:#9a3412; font-weight:900; line-height:1.7; }
     .muted { color:var(--muted); font-size:12px; line-height:1.5; }
     .notice { color:rgba(255,255,255,.75); font-size:12px; line-height:1.6; margin:18px 2px; }
-    .all-table { width:100%; border-collapse:collapse; font-size:13px; margin-top:8px; overflow:hidden; border-radius:14px; }
+    .table-wrap{
+  width:100%;
+  overflow-x:auto;
+}
+
+.table-wrap table{
+  min-width:620px;
+}
+
+.all-table {
+  width:100%;
+  border-collapse:collapse;
+  font-size:13px;
+  margin-top:8px;
+}
     .all-table th, .all-table td { border-bottom:1px solid #e5e7eb; padding:9px 6px; text-align:center; vertical-align:middle; }
     .all-table th { background:#f1f5f9; font-weight:950; }
     .all-table td:first-child { text-align:left; font-weight:900; }
@@ -452,7 +466,9 @@ function renderAllDashboard(){
   }).join("");
 
   document.getElementById("allDashboard").innerHTML = `
+  <div class="table-wrap">
     <table class="all-table">
+    </div>
       <thead>
         <tr><th>경기</th><th>참가</th><th>총상금</th><th>결과</th><th>적중자</th><th>이월</th></tr>
       </thead>
