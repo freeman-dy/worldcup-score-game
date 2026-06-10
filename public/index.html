@@ -170,7 +170,15 @@
         <input id="entryFeeInput" type="number" placeholder="참가비" style="margin-top:8px;" />
         <button class="btn secondary" onclick="saveSettings()">관리 정보 저장</button>
       </div>
-
+      <div class="summary">
+      <strong>경기별 전체 리셋</strong>
+      <div class="muted">선택한 경기의 참가자 예상, 실제 결과, 정산 결과를 모두 삭제합니다.</div>
+      <div class="grid2" style="margin-top:8px;">
+      <button class="btn danger" onclick="resetMatch(1)">1차전 리셋</button>
+      <button class="btn danger" onclick="resetMatch(2)">2차전 리셋</button>
+      </div>
+      <button class="btn danger" onclick="resetMatch(3)">3차전 리셋</button>
+      </div>
       <div id="adminMessage"></div>
       </div>
       </section>
@@ -341,7 +349,23 @@ async function deletePrediction(id){
     showMessage("adminMessage", e.message, true);
   }
 }
+async function resetMatch(matchId){
+  const pw = document.getElementById("adminPassword").value;
+  const match = state.matches.find(m => m.id === matchId);
 
+  if(!confirm(`${match.round}의 참가자 예상, 실제 결과, 정산을 모두 삭제할까요?`)) return;
+
+  try {
+    state = await api(`/api/predictions/match/${matchId}`, {
+      method: "DELETE",
+      headers: { "x-admin-password": pw }
+    });
+    render();
+    showMessage("adminMessage", `${match.round}이 리셋되었습니다.`);
+  } catch(e) {
+    showMessage("adminMessage", e.message, true);
+  }
+}
 function renderPredictionList(){
   const preds = getPredictions(selectedMatchId);
   const result = state.results[selectedMatchId];
