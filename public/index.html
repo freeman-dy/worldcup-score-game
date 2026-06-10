@@ -92,7 +92,11 @@
     </div>
 
     <div class="top-box" id="topSummary">불러오는 중...</div>
-
+   <section class="card">
+  <div class="match-title">카카오톡 공유</div>
+  <div class="muted">아래 버튼을 누르면 링크가 복사됩니다. 카카오톡 단체방에 붙여넣기 하세요.</div>
+  <button class="btn" onclick="shareLink()">참여 링크 복사하기</button>
+  </section>
     <div class="tabs">
       <button class="tab active" onclick="selectMatch(1)">1차전</button>
       <button class="tab" onclick="selectMatch(2)">2차전</button>
@@ -123,7 +127,10 @@
     </section>
 
     <section class="card">
-      <div class="match-title">관리자 메뉴</div>
+  <div class="match-title" onclick="toggleAdminArea()" style="cursor:pointer;">
+  관리자 메뉴 열기/닫기 ▼
+</div>
+      <div id="adminArea" style="display:none;">
       <div class="muted">관리자만 실제 결과 확정, 예상 삭제, 관리자/통장번호 변경이 가능합니다.</div>
       <input id="adminPassword" type="password" placeholder="관리자 비밀번호" style="margin-top:10px;" />
 
@@ -151,7 +158,8 @@
       </div>
 
       <div id="adminMessage"></div>
-    </section>
+      </div>
+      </section>
 
     <section class="card">
       <div class="match-title">정산 결과</div>
@@ -198,7 +206,24 @@ function showMessage(target, text, isError=false) {
   document.getElementById(target).innerHTML = `<div class="${isError ? "error" : "message"}">${text}</div>`;
   setTimeout(() => { document.getElementById(target).innerHTML = ""; }, 3000);
 }
+function shareLink(){
+  const text =
+`⚽ 월드컵 스코어 맞추기
+function toggleAdminArea(){
+  const area = document.getElementById("adminArea");
+  if(!area) return;
+  area.style.display = area.style.display === "none" ? "block" : "none";
+}
 
+관리자: ${state?.settings?.adminName || ""}
+참가비: ${formatMoney(state?.settings?.entryFee || 10000)}
+
+참여 링크
+${location.href}`;
+
+  navigator.clipboard.writeText(text);
+  alert("카카오톡에 붙여넣을 내용이 복사되었습니다.");
+}
 async function api(path, options={}) {
   const res = await fetch(path, {
     headers: { "Content-Type": "application/json", ...(options.headers || {}) },
