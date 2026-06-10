@@ -90,7 +90,7 @@
     .all-table th, .all-table td { border-bottom:1px solid #e5e7eb; padding:9px 6px; text-align:center; vertical-align:middle; }
     .all-table th { background:#f1f5f9; font-weight:950; }
     .all-table td:first-child { text-align:left; font-weight:900; }
-    .ok { color:#dc2626; font-weight:950; }
+    .ok { color:#FFD700;font-weight:950; }
     .empty { color:#94a3b8; }
     .hidden { display:none; }
     .message { padding:11px; border-radius:14px; background:#ecfdf5; color:#047857; font-size:13px; font-weight:800; margin:8px 0; }
@@ -101,7 +101,7 @@
   <main class="container">
     <div class="hero">
       <h1>월드컵 스코어 맞추기</h1>
-      <div class="sub">친구들이 링크로 직접 접속해서 예상 스코어 입력 · 정확한 스코어 맞춘 사람에게 분배</div>
+      <div class="sub">친구들이 링크로 직접 접속해서 예상 스코어 입력 · 정확한 스코어를 맞춘 사람에게 상금을 분배합니다.</div>
       <div class="admin-box" id="adminBox"></div>
     </div>
 
@@ -231,8 +231,7 @@ function shareLink(){
 ${location.href}`;
 
   navigator.clipboard.writeText(text);
-  alert("복사 완료!");
-  alert("카카오톡에 붙여넣을 내용이 복사되었습니다.");
+  alert("복사 완료! 카카오톡에 붙여넣기 하세요.");
 }
 
 function toggleAdminArea(){
@@ -356,7 +355,7 @@ function renderPredictionList(){
       <div class="list-item">
         <div class="rank">${idx + 1}</div>
         <div>
-          <div class="name">${p.name}<br><small>${p.updatedAt}</small> ${isWinner ? "🏆" : ""}</div>
+          <div class="name">${isWinner ? "🏆 " : ""}${p.name}<br><small>${p.updatedAt}</small></div>
           <div class="muted">${wonText(p.homeScore, p.awayScore)} · 입금 ${formatMoney(state.settings.entryFee)}</div>
         </div>
         <div class="score">${p.homeScore} : ${p.awayScore}</div>
@@ -437,7 +436,7 @@ function renderSettlement(){
     </div>`;
 
   if(s.winners.length === 0){
-    html += `<div class="winner">정확한 스코어 맞춘 사람가 없습니다.<br>다음 경기 이월금: ${formatMoney(s.carryOut)}</div>`;
+    html += `<div class="winner">정확한 스코어 맞춘 사람이 없습니다.<br>다음 경기 이월금: ${formatMoney(s.carryOut)}</div>`;
   } else {
     html += `
       <div class="winner">
