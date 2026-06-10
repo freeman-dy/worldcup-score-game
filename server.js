@@ -213,7 +213,16 @@ app.post("/api/predictions", (req, res) => {
   if (!Number.isInteger(h) || !Number.isInteger(a) || h < 0 || a < 0 || h > 20 || a > 20) {
     return res.status(400).json({ ok: false, message: "점수는 0~20 사이 정수로 입력하세요." });
   }
+const resultExists = db.prepare(
+  "SELECT match_id FROM results WHERE match_id = ?"
+).get(Number(matchId));
 
+if (resultExists) {
+  return res.status(400).json({
+    ok: false,
+    message: "이미 결과가 확정된 경기입니다. 예상 스코어를 입력하거나 수정할 수 없습니다."
+  });
+}
   db.prepare(`
     INSERT INTO predictions(match_id, name, home_score, away_score, paid, created_at, updated_at)
     VALUES(?, ?, ?, ?, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
