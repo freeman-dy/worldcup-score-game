@@ -205,7 +205,7 @@ app.post("/api/predictions", (req, res) => {
   const match = matches.find(m => m.id === Number(matchId));
   if (!match) return res.status(400).json({ ok: false, message: "경기 정보가 올바르지 않습니다." });
 
-  const cleanName = String(name || "").trim();
+  const cleanName = String(name || "").trim().replace(/\s+/g, "");
   if (!cleanName) return res.status(400).json({ ok: false, message: "참가자 이름을 입력하세요." });
 
   const h = Number(homeScore);
