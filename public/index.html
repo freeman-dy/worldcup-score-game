@@ -223,11 +223,6 @@ function showMessage(target, text, isError=false) {
 function shareLink(){
   const text =
 `⚽ 월드컵 스코어 맞추기
-function toggleAdminArea(){
-  const area = document.getElementById("adminArea");
-  if(!area) return;
-  area.style.display = area.style.display === "none" ? "block" : "none";
-}
 
 관리자: ${state?.settings?.adminName || ""}
 참가비: ${formatMoney(state?.settings?.entryFee || 10000)}
@@ -237,6 +232,14 @@ ${location.href}`;
 
   navigator.clipboard.writeText(text);
   alert("카카오톡에 붙여넣을 내용이 복사되었습니다.");
+}
+  function toggleAdminArea(){
+  const area = document.getElementById("adminArea");
+  if(!area) return;
+if(area.style.display === "none"){
+  area.style.display = "block";
+}else{
+  area.style.display = "none";
 }
 async function api(path, options={}) {
   const res = await fetch(path, {
@@ -465,17 +468,16 @@ function renderAllDashboard(){
       </tr>`;
   }).join("");
 
-  document.getElementById("allDashboard").innerHTML = `
+document.getElementById("allDashboard").innerHTML = `
   <div class="table-wrap">
     <table class="all-table">
-    </div>
       <thead>
         <tr><th>경기</th><th>참가</th><th>총상금</th><th>결과</th><th>적중자</th><th>이월</th></tr>
       </thead>
       <tbody>${rows}</tbody>
-    </table>`;
-}
-
+    </table>
+  </div>`;
+  
 function render(){
   if (!state) return;
   renderAdminBox();
