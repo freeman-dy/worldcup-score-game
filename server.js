@@ -61,6 +61,7 @@ function getSettings() {
   const rows = db.prepare("SELECT key, value FROM settings").all();
   const obj = {};
   rows.forEach(r => obj[r.key] = r.value);
+
   return {
     adminName: obj.adminName || "000",
     bankAccount: obj.bankAccount || "000-000-000-000",
@@ -70,7 +71,8 @@ function getSettings() {
 
 function getPredictions(matchId) {
   return db.prepare(`
-    SELECT id, match_id AS matchId, name, home_score AS homeScore, away_score AS awayScore, paid, created_at AS createdAt, updated_at AS updatedAt
+    SELECT id, match_id AS matchId, name, home_score AS homeScore, away_score AS awayScore,
+           paid, created_at AS createdAt, updated_at AS updatedAt
     FROM predictions
     WHERE match_id = ?
     ORDER BY id ASC
@@ -79,7 +81,8 @@ function getPredictions(matchId) {
 
 function getAllPredictions() {
   return db.prepare(`
-    SELECT id, match_id AS matchId, name, home_score AS homeScore, away_score AS awayScore, paid, created_at AS createdAt, updated_at AS updatedAt
+    SELECT id, match_id AS matchId, name, home_score AS homeScore, away_score AS awayScore,
+           paid, created_at AS createdAt, updated_at AS updatedAt
     FROM predictions
     ORDER BY match_id ASC, id ASC
   `).all();
@@ -90,6 +93,7 @@ function getResults() {
     SELECT match_id AS matchId, home_score AS homeScore, away_score AS awayScore, confirmed_at AS confirmedAt
     FROM results
   `).all();
+
   const obj = {};
   rows.forEach(r => obj[r.matchId] = r);
   return obj;
@@ -98,6 +102,7 @@ function getResults() {
 function getWinners(matchId, results) {
   const result = results[matchId];
   if (!result) return [];
+
   return getPredictions(matchId).filter(p =>
     Number(p.homeScore) === Number(result.homeScore) &&
     Number(p.awayScore) === Number(result.awayScore)
@@ -106,19 +111,23 @@ function getWinners(matchId, results) {
 
 function getCarryOverBefore(matchId, entryFee, results) {
   let carry = 0;
+
   for (const match of matches) {
     if (match.id >= matchId) break;
+
     const preds = getPredictions(match.id);
     const total = preds.length * entryFee + carry;
     const result = results[match.id];
+
     if (!result) {
       carry = 0;
       continue;
     }
+
     const winners = getWinners(match.id, results);
-    if (winners.length === 0) carry = total;
-    else carry = total % winners.length;
+    carry = winners.length === 0 ? total : total % winners.length;
   }
+
   return carry;
 }
 
@@ -174,6 +183,7 @@ function calculateSettlement(matchId) {
 function buildState() {
   const settings = getSettings();
   const results = getResults();
+
   return {
     ok: true,
     settings,
@@ -189,9 +199,14 @@ function buildState() {
 
 function requireAdmin(req, res, next) {
   const password = req.body.adminPassword || req.headers["x-admin-password"];
+
   if (password !== ADMIN_PASSWORD) {
-    return res.status(401).json({ ok: false, message: "관리자 비밀번호가 맞지 않습니다." });
+    return res.status(401).json({
+      ok: false,
+      message: "관리자 비밀번호가 맞지 않습니다."
+    });
   }
+
   next();
 }
 
@@ -201,41 +216,47 @@ app.get("/api/state", (req, res) => {
 
 app.post("/api/predictions", (req, res) => {
   const { matchId, name, homeScore, awayScore } = req.body;
+
   const match = matches.find(m => m.id === Number(matchId));
-  if (!match) return res.status(400).json({ ok: false, message: "경기 정보가 올바르지 않습니다." });
+  if (!match) {
+    return res.status(400).json({ ok: false, message: "경기 정보가 올바르지 않습니다." });
+  }
 
   const cleanName = String(name || "").trim().replace(/\s+/g, "");
-  if (!cleanName) return res.status(400).json({ ok: false, message: "참가자 이름을 입력하세요." });
+  if (!cleanName) {
+    return res.status(400).json({ ok: false, message: "참가자 이름을 입력하세요." });
+  }
 
   const h = Number(homeScore);
   const a = Number(awayScore);
+
   if (!Number.isInteger(h) || !Number.isInteger(a) || h < 0 || a < 0 || h > 20 || a > 20) {
     return res.status(400).json({ ok: false, message: "점수는 0~20 사이 정수로 입력하세요." });
   }
-const resultExists = db.prepare(
-  "SELECT match_id FROM results WHERE match_id = ?"
-).get(Number(matchId));
 
-if (resultExists) {
-  return res.status(400).json({
-    ok: false,
-    message: "이미 결과가 확정된 경기입니다. 예상 스코어를 입력하거나 수정할 수 없습니다."
-  });
-}
+  const resultExists = db.prepare(
+    "SELECT match_id FROM results WHERE match_id = ?"
+  ).get(Number(matchId));
+
+  if (resultExists) {
+    return res.status(400).json({
+      ok: false,
+      message: "이미 결과가 확정된 경기입니다. 예상 스코어를 입력하거나 수정할 수 없습니다."
+    });
+  }
+
   db.prepare(`
     INSERT INTO predictions(match_id, name, home_score, away_score, paid, created_at, updated_at)
     VALUES(?, ?, ?, ?, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
     ON CONFLICT(match_id, name)
-    DO UPDATE SET home_score = excluded.home_score, away_score = excluded.away_score, updated_at = CURRENT_TIMESTAMP
+    DO UPDATE SET home_score = excluded.home_score,
+                  away_score = excluded.away_score,
+                  updated_at = CURRENT_TIMESTAMP
   `).run(Number(matchId), cleanName, h, a);
 
   res.json(buildState());
 });
 
-app.delete("/api/predictions/:id", requireAdmin, (req, res) => {
-  db.prepare("DELETE FROM predictions WHERE id = ?").run(Number(req.params.id));
-  res.json(buildState());
-});
 app.delete("/api/predictions/match/:matchId", requireAdmin, (req, res) => {
   const matchId = Number(req.params.matchId);
 
@@ -249,13 +270,23 @@ app.delete("/api/predictions/match/:matchId", requireAdmin, (req, res) => {
 
   res.json(buildState());
 });
+
+app.delete("/api/predictions/:id", requireAdmin, (req, res) => {
+  db.prepare("DELETE FROM predictions WHERE id = ?").run(Number(req.params.id));
+  res.json(buildState());
+});
+
 app.post("/api/results", requireAdmin, (req, res) => {
   const { matchId, homeScore, awayScore } = req.body;
+
   const match = matches.find(m => m.id === Number(matchId));
-  if (!match) return res.status(400).json({ ok: false, message: "경기 정보가 올바르지 않습니다." });
+  if (!match) {
+    return res.status(400).json({ ok: false, message: "경기 정보가 올바르지 않습니다." });
+  }
 
   const h = Number(homeScore);
   const a = Number(awayScore);
+
   if (!Number.isInteger(h) || !Number.isInteger(a) || h < 0 || a < 0 || h > 20 || a > 20) {
     return res.status(400).json({ ok: false, message: "점수는 0~20 사이 정수로 입력하세요." });
   }
@@ -264,7 +295,9 @@ app.post("/api/results", requireAdmin, (req, res) => {
     INSERT INTO results(match_id, home_score, away_score, confirmed_at)
     VALUES(?, ?, ?, CURRENT_TIMESTAMP)
     ON CONFLICT(match_id)
-    DO UPDATE SET home_score = excluded.home_score, away_score = excluded.away_score, confirmed_at = CURRENT_TIMESTAMP
+    DO UPDATE SET home_score = excluded.home_score,
+                  away_score = excluded.away_score,
+                  confirmed_at = CURRENT_TIMESTAMP
   `).run(Number(matchId), h, a);
 
   res.json(buildState());
