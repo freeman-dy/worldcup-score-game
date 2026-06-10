@@ -466,16 +466,16 @@ function renderAllDashboard(){
       </tr>`;
   }).join("");
 
-document.getElementById("allDashboard").innerHTML = `
-  <div class="table-wrap">
-    <table class="all-table">
-      <thead>
-        <tr><th>경기</th><th>참가</th><th>총상금</th><th>결과</th><th>적중자</th><th>이월</th></tr>
-      </thead>
-      <tbody>${rows}</tbody>
-    </table>
-  </div>`;
-  
+  document.getElementById("allDashboard").innerHTML = `
+    <div class="table-wrap">
+      <table class="all-table">
+        <thead>
+          <tr><th>경기</th><th>참가</th><th>총상금</th><th>결과</th><th>적중자</th><th>이월</th></tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
 function render(){
   if (!state) return;
   renderAdminBox();
