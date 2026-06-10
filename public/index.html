@@ -175,6 +175,20 @@ let state = null;
 let selectedMatchId = 1;
 
 function formatMoney(v){ return Number(v || 0).toLocaleString("ko-KR") + "원"; }
+function formatBank(v){
+  const raw = String(v || "").trim();
+  const num = raw.replace(/[^0-9]/g, "");
+
+  if(num.length === 11){
+    return num.replace(/(\d{3})(\d{4})(\d{4})/, "$1-$2-$3");
+  }
+
+  if(num.length === 12){
+    return num.replace(/(\d{3})(\d{4})(\d{5})/, "$1-$2-$3");
+  }
+
+  return raw;
+} 
 function getMatch(id){ return state.matches.find(m => m.id === id); }
 function getPredictions(matchId){ return state.predictions.filter(p => p.matchId === matchId); }
 function getSettlement(matchId){ return state.settlements.find(s => s.matchId === matchId); }
@@ -209,7 +223,7 @@ function selectMatch(id){
 function renderAdminBox() {
   document.getElementById("adminBox").innerHTML = `
     <strong>관리자:</strong> ${state.settings.adminName}<br>
-    <strong>통장번호:</strong> ${state.settings.bankAccount}<br>
+    <strong>통장번호:</strong> ${formatBank(state.settings.bankAccount)}<br>
     <span style="font-size:12px;color:rgba(255,255,255,.74)">입금자명은 참가자 이름과 동일하게 입력하세요.</span>
   `;
   document.getElementById("adminNameInput").value = state.settings.adminName;
