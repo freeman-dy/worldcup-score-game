@@ -279,7 +279,7 @@ function renderTopSummary(){
   document.getElementById("topSummary").innerHTML = `
     <span class="badge">참가비 ${formatMoney(state.settings.entryFee)}</span>
     <span class="badge time">${m.date} ${m.time}</span>
-    <span class="badge">정확한 스코어 적중</span><br>
+    <span class="badge">정확한 스코어 맞춘 사람</span><br>
     현재 선택 경기 참가자: <strong>${current.participants}명</strong><br>
     현재 선택 경기 총상금: <span class="money">${formatMoney(current.totalPrize)}</span><br>
     전체 입력 건수: <strong>${totalInputs}건</strong> / 전체 모금 기준액: <span class="money">${formatMoney(totalBase)}</span>
