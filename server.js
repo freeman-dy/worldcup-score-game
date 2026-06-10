@@ -236,7 +236,19 @@ app.delete("/api/predictions/:id", requireAdmin, (req, res) => {
   db.prepare("DELETE FROM predictions WHERE id = ?").run(Number(req.params.id));
   res.json(buildState());
 });
+app.delete("/api/predictions/match/:matchId", requireAdmin, (req, res) => {
+  const matchId = Number(req.params.matchId);
 
+  const match = matches.find(m => m.id === matchId);
+  if (!match) {
+    return res.status(400).json({ ok: false, message: "경기 정보가 올바르지 않습니다." });
+  }
+
+  db.prepare("DELETE FROM predictions WHERE match_id = ?").run(matchId);
+  db.prepare("DELETE FROM results WHERE match_id = ?").run(matchId);
+
+  res.json(buildState());
+});
 app.post("/api/results", requireAdmin, (req, res) => {
   const { matchId, homeScore, awayScore } = req.body;
   const match = matches.find(m => m.id === Number(matchId));
