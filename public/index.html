@@ -233,13 +233,11 @@ ${location.href}`;
   navigator.clipboard.writeText(text);
   alert("카카오톡에 붙여넣을 내용이 복사되었습니다.");
 }
-  function toggleAdminArea(){
+
+function toggleAdminArea(){
   const area = document.getElementById("adminArea");
   if(!area) return;
-if(area.style.display === "none"){
-  area.style.display = "block";
-}else{
-  area.style.display = "none";
+  area.style.display = area.style.display === "none" ? "block" : "none";
 }
 async function api(path, options={}) {
   const res = await fetch(path, {
