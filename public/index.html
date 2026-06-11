@@ -379,7 +379,7 @@ function renderPredictionList(){
       <div class="list-item">
         <div class="rank">${idx + 1}</div>
         <div>
-          <div class="name">${isWinner ? "🏆 " : ""}${p.name}<br><small>${p.updatedAt}</small></div>
+          <div class="name">${isWinner ? "🏆 " : ""}${p.name}<br><small>${new Date(p.updatedAt + "Z").toLocaleString("ko-KR")}</small></div>
           <div class="muted">${wonText(p.homeScore, p.awayScore)} · 입금 ${formatMoney(state.settings.entryFee)}</div>
         </div>
         <div class="score">${p.homeScore} : ${p.awayScore}</div>
